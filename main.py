@@ -6,5 +6,5 @@ load_dotenv()
 if __name__ == "__main__":
     workflow_app = create_workflow_graph()
     # You can now run the workflow app with an initial state
-    result = workflow_app.invoke({"query": "Design a class B network with 3 routers, 6 switches, mesh topology, and 200 computers."})
+    result = workflow_app.invoke({"query": "Show nginx status"})
     print(result)

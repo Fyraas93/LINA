@@ -16,3 +16,10 @@ class Network_design(BaseModel):
     scalability: str = Field(..., description="Recommendations for scalability and future expansion")
     security: str = Field(..., description="Recommendations for VLANs, firewalls, and failover strategies")
     diagram: str = Field(..., description="ASCII representation of the network topology")
+
+
+class Server_manager(BaseModel):
+    command: str = Field(..., description="The shell command executed")
+    output: str = Field(..., description="The result of the command")
+    success: bool = Field(..., description="True if command executed successfully")
+    error: str = Field(..., description="Any error message, if occurred")
