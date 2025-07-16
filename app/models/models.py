@@ -1,4 +1,20 @@
 from pydantic import BaseModel, Field
+from enum import Enum
+
+class Supervisor_tools(str, Enum):
+    ANALYZER = "analyzer_node"
+    NETWORK_DESIGNER = "network_designer_node"
+    SERVER_MANAGER = "server_manager_node"
+    CHAT = "chat_node"
+    EXIT = "exit_node"
+
+class Supervisor(BaseModel):
+    tool : Supervisor_tools = Field(..., description="""The tool to use for the supervisor node:
+                                     - analyzer_node: For log analysis
+                                     - network_designer_node: For network design
+                                     - server_manager_node: For server management
+                                     - chat_node: For general chat and queries
+                                     - exit_node: To exit the workflow""")
 
 class Log_analysis(BaseModel):
     # the log analysis class is the structured output of the llm, this should return useful informations, the input will be bunch of logs to analyze

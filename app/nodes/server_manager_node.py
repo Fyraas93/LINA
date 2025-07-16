@@ -3,6 +3,7 @@ from app.models.agent_state import AgentState
 from app.models.models import Server_manager
 from app.chains.chains import get_server_manager_chain
 import os
+from rich import print
 
 def execute_ssh_command(command: str) -> Server_manager:
     try:
@@ -38,10 +39,12 @@ def execute_ssh_command(command: str) -> Server_manager:
 
 def server_manager_node(state: AgentState) -> AgentState:
     user_query = state["query"]
-    command = get_server_manager_chain().invoke({"query": user_query}).strip()
+    x = get_server_manager_chain().invoke({"query": user_query})
+    print(x)
+    command  = x.command
     print("🧠 LLM-generated command:", command)
     result = execute_ssh_command(command)
-
+    
     return {
         **state,
         "server_manager": result

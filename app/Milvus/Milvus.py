@@ -65,7 +65,6 @@ class MilvusStorage:
         try:
             has_collection = utility.has_collection(self.collection_name, using="default")
             if has_collection:
-                print(f"Loading existing collection '{self.collection_name}'...")
                 self.collection = Collection(self.collection_name, using="default")
             else:
                 print(f"Creating new collection '{self.collection_name}'...")
@@ -77,7 +76,6 @@ class MilvusStorage:
                 )
                 self._create_index()
             self.collection.load()
-            print(f"Collection has {self.collection.num_entities} entities.")
         except Exception as e:
             print(f"Error loading/creating collection: {e}")
             raise

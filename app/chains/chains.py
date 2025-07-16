@@ -2,16 +2,24 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from app.models.llm import llm
-from app.models.models import Log_analysis, Network_design, Server_manager
-from app.prompts.prompts import analyzer_prompt_template
-from app.prompts.prompts import network_designer_prompt_template 
-from app.prompts.prompts import server_manager_prompt_template
+from app.models.models import Log_analysis, Network_design, Server_manager, Supervisor
+from app.prompts.prompts import (supervisor_prompt_template,
+                                 analyzer_prompt_template,
+                                 network_designer_prompt_template,
+                                 server_manager_prompt_template)
 
-
+llm_supervisor = llm.with_structured_output(Supervisor)
 llm_analyzer = llm.with_structured_output(Log_analysis)
 llm_network_design = llm.with_structured_output(Network_design)
-llm_server_manager = llm | StrOutputParser()
+llm_server_manager = llm.with_structured_output(Server_manager)
+llm_chat = llm
 
+def get_supervisor_chain():
+    supervisor_prompt = ChatPromptTemplate.from_messages([
+        ("system", supervisor_prompt_template),
+        ("user", "{query}")
+    ])
+    return supervisor_prompt | llm_supervisor
 
 def get_analyzer_chain():
     analyzer_prompt = ChatPromptTemplate.from_messages([
@@ -34,3 +42,10 @@ def get_server_manager_chain():
         ("user", "{query}")
     ])
     return  prompt | llm_server_manager 
+
+def get_chat_chain():
+    chat_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a helpful assistant ."),
+        ("user", "{query}")
+    ])
+    return chat_prompt | llm_chat | StrOutputParser()
