@@ -6,7 +6,8 @@ from app.models.models import Log_analysis, Network_design, Server_manager, Supe
 from app.prompts.prompts import (supervisor_prompt_template,
                                  analyzer_prompt_template,
                                  network_designer_prompt_template,
-                                 server_manager_prompt_template)
+                                 server_manager_prompt_template,
+                                 chat_prompt_template   )
 
 llm_supervisor = llm.with_structured_output(Supervisor)
 llm_analyzer = llm.with_structured_output(Log_analysis)
@@ -45,7 +46,7 @@ def get_server_manager_chain():
 
 def get_chat_chain():
     chat_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a helpful assistant ."),
+        ("system",chat_prompt_template),
         ("user", "{query}")
     ])
     return chat_prompt | llm_chat | StrOutputParser()
