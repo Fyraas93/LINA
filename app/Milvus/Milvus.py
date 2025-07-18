@@ -199,7 +199,7 @@ class MilvusStorage:
             traceback.print_exc()
             return False
 
-    def search_similar_logs(self, query_embedding, top_k=50, only_anomalies=False):
+    def search_similar_logs(self, query_embedding, top_k=10, only_anomalies=False):
         """
         Search for similar logs based on embedding.
         """
