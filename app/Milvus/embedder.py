@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Module for generating embeddings for log messages.
 """
@@ -20,10 +19,10 @@ class LogEmbedder:
             model: OpenAI embedding model to use
             api_key: OpenAI API key (will use OPENAI_API_KEY env var if None)
         """
-        # Load environment variables
+        
         load_dotenv()
 
-        # Set up OpenAI client
+       
         self.api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             print("Error: OpenAI API key not configured.")

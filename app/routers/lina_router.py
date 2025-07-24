@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas.lina_schema import QueryResponse
+from app.schemas.lina_schema import QueryResponseUnifiedOutput
 from app.services.lina_service import linaService
 
 router = APIRouter(prefix="", tags=["LINA"])
@@ -7,24 +7,23 @@ lina_service = linaService()
 
 @router.get("/health")
 async def health_check():
-    """
-    Health check endpoint to verify if the LINA service is running.
-    
-    Returns:
-        str: A message indicating the service is healthy.
-    """
     return {"message": "LINA service is healthy"}
 
-@router.post("/query")
+@router.post("/query", response_model=QueryResponseUnifiedOutput)
 async def query_lina(query: str):
-    """
-    Endpoint to query the LINA application.
-    
-    Args:
-        query (str): The user query to be processed by the LINA workflow.
-    
-    Returns:
-        QueryResponse: The response containing the results of the query.
-    """
     result = lina_service.lina_invoke(query)
-    return result
+
+    # Extract the "supervisor" field and rename to "Agent"
+    agent = result.get("supervisor", None)
+
+    # Extract the actual output from possible keys
+    output = (
+        result.get("log_analysis") or
+        result.get("network_design") or
+        result.get("server_manager") or
+        result.get("chat_response") or
+        None
+    )
+
+    # Return wrapped response with alias keys
+    return QueryResponseUnifiedOutput(query=result.get("query", ""), Agent=agent, output=output)

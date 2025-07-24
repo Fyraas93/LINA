@@ -1,16 +1,12 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, Union
 from app.models.models import Log_analysis, Network_design, Server_manager
 
-class UserRequest(BaseModel):
+class QueryResponseUnifiedOutput(BaseModel):
     query: str
-    
+    Agent: Optional[str] = None  # Maps internal "supervisor" to "Agent"
+    output: Optional[Union[Log_analysis, Network_design, Server_manager, str]] = None
 
-
-class QueryResponse(BaseModel):
-    query: str
-    supervisor: str | None
-    log_analysis: Optional[Log_analysis]
-    network_design: Optional[Network_design]
-    server_manager: Optional[Server_manager]
-    chat_response: Optional[str]
+    class Config:
+        allow_population_by_field_name = True
+        orm_mode = True

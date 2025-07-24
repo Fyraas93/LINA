@@ -1,9 +1,12 @@
+fastapi
+uvicorn[standard]
 json5==0.12.0
 langchain==0.3.26
 langchain_core==0.3.68
 langchain_openai==0.3.28
 langgraph==0.5.2
 langgraph_supervisor==0.0.27
+langfuse==3.2.1
 networkx==3.5
 numpy==2.3.1
 openai==1.95.1
@@ -19,3 +22,7 @@ scipy==1.16.0
 tenacity==9.1.2
 tqdm==4.67.1
 watchdog==6.0.0
+rich==14.0.0
+psutil==7.0.0
+requests==2.31.0
+typer==0.12.3
