@@ -1,10 +1,16 @@
 from app.workflow.graph import create_workflow_graph
 from dotenv import load_dotenv
-load_dotenv()
 from langfuse import Langfuse
 from langfuse.langchain import CallbackHandler
 import os
+import uuid
+import asyncio
+from typing import Optional
 
+# Load environment variables
+load_dotenv()
+
+# Langfuse setup
 langfuse = Langfuse(
     public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
     secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
@@ -13,22 +19,18 @@ langfuse = Langfuse(
 
 langfuse_handler = CallbackHandler()
 
-class linaService:
-    """
-    LinaService is a class that provides methods to create and manage the workflow graph for the LINA application.
-    It includes methods to create nodes for different functionalities such as log analysis, network design, server management, and chat.
-    """
 
-    def lina_invoke(self, query: str):
-        """
-        Invoke the LINA workflow with a given query.
-        
-        Args:
-            query (str): The user query to be processed by the LINA workflow.
-        
-        Returns:
-            The result of the workflow invocation.
-        """
-        workflow_app = create_workflow_graph()
-        result = workflow_app.invoke({"query": query}, config={"callbacks": [langfuse_handler]})
-        return result
+class linaService:
+    def __init__(self):
+        self.workflow_app = create_workflow_graph()
+
+    async def lina_invoke(self, query: str, thread_id: Optional[str] = None) -> dict:
+        session_id = thread_id or str(uuid.uuid4())
+        return self.workflow_app.invoke(
+            {"query": query, "messages": []},
+            config={
+                "callbacks": [langfuse_handler],
+                "thread_id": session_id,
+            }
+        )
+

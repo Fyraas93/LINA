@@ -26,3 +26,6 @@ rich==14.0.0
 psutil==7.0.0
 requests==2.31.0
 typer==0.12.3
+aiosqlite==0.21.0
+langgraph-checkpoint-sqlite==2.0.10
+sqlite-vec==0.1.6

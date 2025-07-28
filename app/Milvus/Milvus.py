@@ -1,3 +1,4 @@
+
 """
 Module for storing log embeddings in Milvus.
 """
@@ -11,7 +12,7 @@ from pymilvus import connections, utility, Collection, DataType, FieldSchema, Co
 class MilvusStorage:
     """Class for storing log embeddings in Milvus."""
 
-    def __init__(self, host="localhost", port="19530", collection_name="log_embeddings", embedding_dim=1536):
+    def __init__(self, host="localhost", port="19530", collection_name="logs", embedding_dim=1536):
         """
         Initialize the Milvus storage.
         """
@@ -24,7 +25,9 @@ class MilvusStorage:
         self._connect()
 
     def _connect(self):
-        """Connect to Milvus server and initialize collection."""
+        """
+        Connect to Milvus server and initialize collection.
+        """
         try:
             if connections.has_connection("default"):
                 connections.disconnect("default")
@@ -41,7 +44,9 @@ class MilvusStorage:
             self.collection = None
 
     def _create_schema(self):
-        """Create schema for the collection."""
+        """
+        Create schema for the collection.
+        """
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
             FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=self.embedding_dim),
@@ -49,8 +54,8 @@ class MilvusStorage:
             FieldSchema(name="timestamp", dtype=DataType.VARCHAR, max_length=100),
             FieldSchema(name="source", dtype=DataType.VARCHAR, max_length=500),
             FieldSchema(name="severity", dtype=DataType.VARCHAR, max_length=20),
-            FieldSchema(name="anomaly_flag", dtype=DataType.BOOL, default_value=False),
-            FieldSchema(name="anomaly_reason", dtype=DataType.VARCHAR, max_length=500, default_value=""),
+            FieldSchema(name="anomaly_flag", dtype=DataType.BOOL),
+            FieldSchema(name="anomaly_reason", dtype=DataType.VARCHAR, max_length=500),
             FieldSchema(name="target_label", dtype=DataType.VARCHAR, max_length=100),
         ]
         schema = CollectionSchema(
@@ -61,13 +66,15 @@ class MilvusStorage:
         return schema
 
     def _load_or_create_collection(self):
-        """Load existing collection or create a new one."""
+        """
+        Load existing collection or create a new one.
+        """
         try:
             has_collection = utility.has_collection(self.collection_name, using="default")
             if has_collection:
                 self.collection = Collection(self.collection_name, using="default")
             else:
-                print(f"Creating new collection '{self.collection_name}'...")
+                print(f"Creating new collection \'{self.collection_name}\'...")
                 schema = self._create_schema()
                 self.collection = Collection(
                     name=self.collection_name,
@@ -81,7 +88,9 @@ class MilvusStorage:
             raise
 
     def _create_index(self):
-        """Create index on embedding field for faster search."""
+        """
+        Create index on embedding field for faster search.
+        """
         if not self.collection:
             return
         try:
@@ -143,13 +152,13 @@ class MilvusStorage:
             print("No data to insert.")
             return False
 
-        required_cols = ['embedding', 'log_message', 'timestamp']
+        required_cols = ["embedding", "log_message", "timestamp", "source", "severity", "anomaly_flag", "anomaly_reason", "target_label"]
         missing_cols = [col for col in required_cols if col not in df_logs.columns]
         if missing_cols:
             print(f"Missing required columns: {missing_cols}")
             return False
 
-        valid_mask = df_logs['embedding'].notna()
+        valid_mask = df_logs["embedding"].notna()
         if not valid_mask.any():
             print("No valid embeddings found in the data.")
             return False
@@ -163,24 +172,17 @@ class MilvusStorage:
                 print("No valid embeddings to insert.")
                 return False
 
-            log_messages = df_valid["log_message"].astype(str).tolist()[:len(numpy_embeddings)]
-            timestamps = df_valid["timestamp"].astype(str).tolist()[:len(numpy_embeddings)]
-            sources = df_valid["source"].astype(str).tolist()[:len(numpy_embeddings)] if "source" in df_valid.columns else ["unknown"] * len(numpy_embeddings)
-            labels = df_valid["target_label"].astype(str).tolist()[:len(numpy_embeddings)] if "target_label" in df_valid.columns else ["UNKNOWN"] * len(numpy_embeddings)
-            anomaly_flags = df_valid["anomaly_flag"].tolist()[:len(numpy_embeddings)] if "anomaly_flag" in df_valid.columns else [False] * len(numpy_embeddings)
-            anomaly_reasons = df_valid["anomaly_reason"].astype(str).tolist()[:len(numpy_embeddings)] if "anomaly_reason" in df_valid.columns else [""] * len(numpy_embeddings)
-            severities = df_valid["severity"].astype(str).tolist()[:len(numpy_embeddings)] if "severity" in df_valid.columns else ["Info"] * len(numpy_embeddings)
-
+            # Ensure all data types are correct for Milvus insertion
             data = [
                 {
                     "embedding": numpy_embeddings[i],
-                    "log_message": log_messages[i],
-                    "timestamp": timestamps[i],
-                    "source": sources[i],
-                    "target_label": labels[i],
-                    "anomaly_flag": anomaly_flags[i],
-                    "anomaly_reason": anomaly_reasons[i],
-                    "severity": severities[i]
+                    "log_message": str(df_valid["log_message"].iloc[i]),
+                    "timestamp": str(df_valid["timestamp"].iloc[i]),
+                    "source": str(df_valid["source"].iloc[i]),
+                    "severity": str(df_valid["severity"].iloc[i]),
+                    "anomaly_flag": bool(df_valid["anomaly_flag"].iloc[i]),
+                    "anomaly_reason": str(df_valid["anomaly_reason"].iloc[i]),
+                    "target_label": str(df_valid["target_label"].iloc[i]),
                 }
                 for i in range(len(numpy_embeddings))
             ]
@@ -263,10 +265,14 @@ class MilvusStorage:
             return None
 
     def disconnect(self):
-        """Disconnect from Milvus."""
+        """
+        Disconnect from Milvus.
+        """
         try:
             if connections.has_connection("default"):
                 connections.disconnect("default")
                 print("Disconnected from Milvus.")
         except Exception as e:
             print(f"Error disconnecting: {e}")
+
+

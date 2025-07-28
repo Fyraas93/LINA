@@ -6,6 +6,9 @@ from app.nodes.chat_node import chat_node
 from app.models.models import Supervisor_tools
 from langgraph.graph import StateGraph, END, START
 from app.models.agent_state import AgentState
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver 
+import sqlite3
 
 def supervisor_router(state : AgentState):
     router_mapping = {
@@ -52,8 +55,9 @@ def create_workflow_graph():
     graph.add_edge("network_designer_node", END)  
     graph.add_edge("server_manager_node", END)
     graph.add_edge("chat_node", END)
-
-    app = graph.compile()
+    
+    checkpointer = InMemorySaver()  
+    app = graph.compile(checkpointer=checkpointer)
     app.get_graph().draw_mermaid_png(output_file_path="graph.png")
 
     return app

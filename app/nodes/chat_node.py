@@ -1,13 +1,27 @@
 from app.models.agent_state import AgentState
 from app.chains.chains import get_chat_chain
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
+from dotenv import load_dotenv
+load_dotenv()
 
 def chat_node(state: AgentState) -> AgentState:
     """
-    The chat node is responsible for handling general chat queries that fall under the specific tools like log analysis, network design, or server management.
+    Handles general queries and updates short-term memory manually.
     """
 
-    design = get_chat_chain().invoke({"query": state["query"]})
+    
+    messages: list[BaseMessage] = state.get("messages", []) or []
+
+    
+    messages.append(HumanMessage(content=state["query"]))
+
+    response = get_chat_chain().invoke(messages)
+
+  
+    messages.append(AIMessage(content=response.content))
+
     return {
         **state,
-        "chat_response": design
+        "chat_response": response.content,
+        "messages": messages  # updated memory
     }

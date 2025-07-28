@@ -1,12 +1,14 @@
-from typing import TypedDict, Optional
-from langchain_core.messages import BaseMessage
+from typing import TypedDict, Optional, List
+from langchain_core.messages import BaseMessage 
 from langchain.schema import Document
 from app.models.models import Server_manager, Log_analysis, Network_design, Supervisor
+from langgraph.prebuilt.chat_agent_executor import AgentState as BaseAgentState
 
-class AgentState(TypedDict):
+class AgentState(BaseAgentState):  
     query: str
-    supervisor: str | None
-    log_analysis: Log_analysis | None
-    network_design: Network_design | None
-    server_manager: Server_manager | None
-    chat_response: str | None
+    supervisor: Optional[str]
+    log_analysis: Optional[Log_analysis]
+    network_design: Optional[str]  
+    server_manager: Optional[Server_manager]
+    chat_response: Optional[str]
+    messages: Optional[List[BaseMessage]]

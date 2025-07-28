@@ -3,6 +3,8 @@ from app.chains.chains import get_analyzer_chain
 from app.Milvus.Milvus import MilvusStorage
 from app.Milvus.embedder import LogEmbedder
 from dotenv import load_dotenv
+from langchain_core.messages import AIMessage, HumanMessage
+
 load_dotenv()
 
 embedder = LogEmbedder()
@@ -23,21 +25,33 @@ def format_logs_as_text(logs: list[dict]) -> str:
         )
     return "\n".join(formatted_logs)
 
-
 def analyzer_node(state: AgentState) -> AgentState:
     """
-    Generate a learning roadmap based on the user's query.
-    Adds the analysis to the agent state.
+    Analyze logs based on the query and update the agent state with the result.
     """
 
+    #  Retrieve relevant logs from Milvus
     logs = milvus_storage.search_similar_logs(
-        query_embedding=embedder.generate_embedding(state["query"]), top_k=10)
-   
+        query_embedding=embedder.generate_embedding(state["query"]), top_k=10
+    )
+    print("Logs received by analyzer:", logs)
+
+    #  Format logs for the LLM
     formatted_logs = format_logs_as_text(logs)
 
-    analysis = get_analyzer_chain().invoke({"query": state["query"], "logs": formatted_logs})
-    # print(f"🧠 Analysis: {analysis}")
+    #  Get analysis from the LLM
+    analysis = get_analyzer_chain().invoke({
+        "query": state["query"],
+        "logs": formatted_logs
+    })
+
+    #  Append chat history for short-term memory (if messages tracking is enabled)
+    messages = state.get("messages", [])
+    messages.append(HumanMessage(content=f"Analyze logs related to: {state['query']}"))
+    messages.append(AIMessage(content=analysis.output))
+    
     return {
         **state,
-        "log_analysis": analysis.output  
+        "log_analysis": analysis.output,
+        "messages": messages
     }

@@ -22,8 +22,8 @@ class LogEmbedder:
         
         load_dotenv()
 
-       
-        self.api_key = api_key if api_key else os.getenv("OPENAI_API_KEY")
+        # Explicitly get API key from environment variable
+        self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             print("Error: OpenAI API key not configured.")
             self.client = None
@@ -108,10 +108,10 @@ class LogEmbedder:
             DataFrame: Original DataFrame with 'embedding' column added
         """
         if logs_df is None or text_column not in logs_df.columns:
-            print(f"Error: Invalid log DataFrame or column '{text_column}' not found.")
+            print(f"Error: Invalid log DataFrame or column \'{text_column}\' not found.")
             return None
 
-        print(f"Starting embedding generation for column '{text_column}'...")
+        print(f"Starting embedding generation for column \'{text_column}\'...")
 
         texts = logs_df[text_column].astype(str).tolist()
         embeddings = self.generate_embeddings(texts, batch_size=batch_size)
@@ -124,3 +124,4 @@ class LogEmbedder:
         print(f"Embedding generation completed. {valid_embeddings}/{len(embeddings)} valid embeddings created.")
 
         return result_df
+

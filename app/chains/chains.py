@@ -2,6 +2,10 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from app.models.llm import llm
+from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
+
+
 from app.models.models import Log_analysis, Network_design, Server_manager, Supervisor
 from app.prompts.prompts import (supervisor_prompt_template,
                                  analyzer_prompt_template,
@@ -44,9 +48,7 @@ def get_server_manager_chain():
     ])
     return  prompt | llm_server_manager 
 
+
 def get_chat_chain():
-    chat_prompt = ChatPromptTemplate.from_messages([
-        ("system",chat_prompt_template),
-        ("user", "{query}")
-    ])
-    return chat_prompt | llm_chat | StrOutputParser()
+    return ChatOpenAI(temperature=0) 
+
