@@ -16,13 +16,19 @@ async def query_lina(query: str = Body(..., embed=True)):
     result = await lina_service.lina_invoke(query)
 
     agent = result.get("supervisor")
-    output = (
-        result.get("log_analysis")
-        or result.get("network_design")
-        or result.get("server_manager")
-        or result.get("chat_response")
-        or "No output was generated."
-    )
+    output = None
+    
+    if result.get("server_manager"):
+        #  Return only the output field, not the full model
+        output = {"output": result["server_manager"].output}
+    elif result.get("log_analysis"):
+        output = result["log_analysis"]
+    elif result.get("network_design"):
+        output = result["network_design"]
+    elif result.get("chat_response"):
+        output = {"output": result["chat_response"]}
+    else:
+        output = {"output": "No output was generated."}
 
     return QueryResponseUnifiedOutput(
         query=result.get("query", ""),

@@ -31,7 +31,6 @@ class MilvusStorage:
         try:
             if connections.has_connection("default"):
                 connections.disconnect("default")
-            print(f"Connecting to Milvus at {self.host}:{self.port}")
             connections.connect(
                 alias="default",
                 host=self.host,
@@ -257,7 +256,6 @@ class MilvusStorage:
                     "severity": hit.entity.get("severity")
                 }
                 similar_logs.append(log_info)
-            print("Milvus retrieval complete.")
             return similar_logs
 
         except Exception as e:

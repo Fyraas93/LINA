@@ -27,7 +27,7 @@ class linaService:
     async def lina_invoke(self, query: str, thread_id: Optional[str] = None) -> dict:
         session_id = thread_id or str(uuid.uuid4())
         return self.workflow_app.invoke(
-            {"query": query, "messages": []},
+            {"query": query, "chat_history": []},
             config={
                 "callbacks": [langfuse_handler],
                 "thread_id": session_id,

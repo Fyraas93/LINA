@@ -11,4 +11,4 @@ class AgentState(BaseAgentState):
     network_design: Optional[str]  
     server_manager: Optional[Server_manager]
     chat_response: Optional[str]
-    messages: Optional[List[BaseMessage]]
+    chat_history: Optional[List[BaseMessage]]

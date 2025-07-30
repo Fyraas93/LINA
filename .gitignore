@@ -6,7 +6,7 @@ dist/
 wheels/
 *.egg-info
 volumes
-app/data
+#app/data
 # Virtual environments
 .venv
 .env

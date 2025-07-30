@@ -17,13 +17,13 @@ def supervisor_node(state: AgentState) -> AgentState:
     print("Type:", type(selected_tool))
 
     # Step 2: Update memory
-    messages = state.get("messages", [])
-    messages.append(HumanMessage(content=state["query"]))
-    messages.append(AIMessage(content=f"Routing query to: `{selected_tool}`"))
+    chat_history = state.get("chat_history")
+    chat_history.append(HumanMessage(content=state["query"]))
+    chat_history.append(AIMessage(content=f"Routing query to: `{selected_tool}`"))
 
     # Step 3: Return updated state
     return {
         **state,
         "supervisor": selected_tool,
-        "messages": messages
+        "chat_history": chat_history
     }

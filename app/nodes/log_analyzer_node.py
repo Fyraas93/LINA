@@ -46,12 +46,12 @@ def analyzer_node(state: AgentState) -> AgentState:
     })
 
     #  Append chat history for short-term memory (if messages tracking is enabled)
-    messages = state.get("messages", [])
-    messages.append(HumanMessage(content=f"Analyze logs related to: {state['query']}"))
-    messages.append(AIMessage(content=analysis.output))
+    chat_history = state.get("chat_history", [])
+    chat_history.append(HumanMessage(content=f"Analyze logs related to: {state['query']}"))
+    chat_history.append(AIMessage(content=analysis.output))
     
     return {
         **state,
         "log_analysis": analysis.output,
-        "messages": messages
+        "chat_history": chat_history
     }

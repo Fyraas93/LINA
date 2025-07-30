@@ -66,19 +66,21 @@ In addition to identifying issues, summarize the logs and provide insights for e
 ====================
  Analysis Guidelines:
 ====================
-1. Only focus on problematic entries — ignore purely informational logs.
+1. Only focus on *meaningful* logs (skip purely informational entries unless they are related to errors or failures).
 2. Count how many logs fall into each log level (e.g., INFO, WARNING, ERROR, DEBUG).
-3. Classify issues by topic (e.g., Network, Application, Disk, Authentication).
+3. Categorize issues by **topic** (e.g., Network, Application, Disk, Authentication, Permissions, Configuration).
 4. Identify frequently failing components (e.g., "80% of errors are from nginx").
-5. Summarize each problem in plain language.
-6. Provide actionable recommendations.
-7. Rank the overall situation as low / medium / high severity.
+5. Summarize each detected issue in **clear, plain language**.
+6. Provide **detailed technical explanations** and **clear actionable steps** for each problem.
+7. Give an **overall severity assessment**: low / medium / high.
+8. If no issues are detected, still summarize what was observed, and include monitoring suggestions.
+9. If the log set is small (e.g., under 10 logs), infer cautiously but still try to highlight patterns or potential risks.
 
 ====================
  Output Format:
 ====================
 
-Return your full analysis **as plain text** in the following format:
+Return your **complete analysis** as plain text, structured like this:
 
 Log Level Summary:
 - <count> INFO
@@ -86,7 +88,7 @@ Log Level Summary:
 - <count> ERROR
 
 Frequent Error Sources:
-- <component>: <error count> errors (<percentage>%)
+- <component/service>: <error count> errors (<percentage>%)
 ...
 
 Issues Detected:
@@ -96,14 +98,23 @@ Issues Detected:
 
 ...
 
-Summary: "<brief overall summary>"
+Summary: "<concise overview of the log situation>"
 
 Recommendations:
 - "<recommendation 1>"
 - "<recommendation 2>"
 ...
 
-You must return the full analysis as a single string assigned to the field 'output' in this format:
+Always check for:
+- Permissions issues
+- Disk errors or full disk
+- Configuration problems
+- Authentication failures
+- Service crashes or restarts
+
+
+Output Wrapping:
+Your full structured response must be returned as a single string assigned to the JSON field 'output' like this:
 
 {{
   "output": "<Your full natural language analysis here including summary, issues, errors, recommendations, etc.>"
