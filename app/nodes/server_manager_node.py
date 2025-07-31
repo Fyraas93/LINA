@@ -63,12 +63,12 @@ def server_manager_node(state: AgentState) -> AgentState:
     result = execute_ssh_command(command)
 
     # Step 3: Update message history if tracking
-    messages = state.get("messages", [])
-    messages.append(HumanMessage(content=f"Execute server command: {user_query}"))
-    messages.append(AIMessage(content=f"Command: `{result.command}`\n\nOutput:\n{result.output}\n\nError:\n{result.error or 'None'}"))
+    chat_history = state.get("chat_history", [])
+    chat_history.append(HumanMessage(content=f"Execute server command: {user_query}"))
+    chat_history.append(AIMessage(content=f"Command: `{result.command}`\n\nOutput:\n{result.output}\n\nError:\n{result.error or 'None'}"))
 
     return {
         **state,
         "server_manager": result,
-        "messages": messages
+        "chat_history": chat_history
     }

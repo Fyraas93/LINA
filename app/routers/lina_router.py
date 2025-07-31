@@ -19,8 +19,8 @@ async def query_lina(query: str = Body(..., embed=True)):
     output = None
     
     if result.get("server_manager"):
-        #  Return only the output field, not the full model
-        output = {"output": result["server_manager"].output}
+       
+        output = result["server_manager"].output
     elif result.get("log_analysis"):
         output = result["log_analysis"]
     elif result.get("network_design"):
