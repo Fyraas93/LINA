@@ -1,34 +1,22 @@
 from fastapi import APIRouter, Body
 from app.schemas.lina_schema import QueryResponseUnifiedOutput, LinaQueryRequest
 from app.services.lina_service import linaService
+from langgraph.checkpoint.memory import InMemorySaver
 
 router = APIRouter(prefix="", tags=["LINA"])
-lina_service = linaService()
-
+memory=InMemorySaver()
+lina_service = linaService(memory=memory)
 
 @router.get("/health")
 async def health_check():
     return {"message": "LINA service is healthy"}
-
 
 @router.post("/query", response_model=QueryResponseUnifiedOutput)
 async def query_lina(query: str = Body(..., embed=True)):
     result = await lina_service.lina_invoke(query)
 
     agent = result.get("supervisor")
-    output = None
-    
-    if result.get("server_manager"):
-       
-        output = result["server_manager"].output
-    elif result.get("log_analysis"):
-        output = result["log_analysis"]
-    elif result.get("network_design"):
-        output = result["network_design"]
-    elif result.get("chat_response"):
-        output = {"output": result["chat_response"]}
-    else:
-        output = {"output": "No output was generated."}
+    output = result.get("output")
 
     return QueryResponseUnifiedOutput(
         query=result.get("query", ""),

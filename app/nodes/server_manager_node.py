@@ -67,8 +67,5 @@ def server_manager_node(state: AgentState) -> AgentState:
     chat_history.append(HumanMessage(content=f"Execute server command: {user_query}"))
     chat_history.append(AIMessage(content=f"Command: `{result.command}`\n\nOutput:\n{result.output}\n\nError:\n{result.error or 'None'}"))
 
-    return {
-        **state,
-        "server_manager": result,
-        "chat_history": chat_history
-    }
+    state["output"] = result.output
+    return state

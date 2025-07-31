@@ -1,6 +1,4 @@
-
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from app.models.llm import llm
 from langchain_community.chat_models import ChatOpenAI
 from langchain_openai import ChatOpenAI
@@ -50,5 +48,11 @@ def get_server_manager_chain():
 
 
 def get_chat_chain():
-    return ChatOpenAI(temperature=0) 
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", chat_prompt_template),
+        MessagesPlaceholder(variable_name="chat_history", optional=True),
+        ("user", "{query}")
+    ])
+
+    return prompt | ChatOpenAI(temperature=0) 
 

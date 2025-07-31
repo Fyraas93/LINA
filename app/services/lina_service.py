@@ -6,6 +6,7 @@ import os
 import uuid
 import asyncio
 from typing import Optional
+from langgraph.checkpoint.memory import InMemorySaver
 
 # Load environment variables
 load_dotenv()
@@ -21,16 +22,16 @@ langfuse_handler = CallbackHandler()
 
 
 class linaService:
-    def __init__(self):
-        self.workflow_app = create_workflow_graph()
+    def __init__(self,memory:InMemorySaver):
+        self.memory=memory
+        self.workflow_app = create_workflow_graph(self.memory)
 
     async def lina_invoke(self, query: str, thread_id: Optional[str] = None) -> dict:
-        session_id = thread_id or str(uuid.uuid4())
         return self.workflow_app.invoke(
-            {"query": query, "chat_history": []},
+            {"query": query},
             config={
                 "callbacks": [langfuse_handler],
-                "thread_id": session_id,
+                "thread_id": "123",
             }
         )
 

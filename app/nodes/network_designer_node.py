@@ -34,8 +34,5 @@ def network_designer_node(state: AgentState) -> AgentState:
     messages.append(HumanMessage(content=f"Design a network for: {state['query']}"))
     messages.append(AIMessage(content=formatted_output))
 
-    return {
-        **state,
-        "network_design": formatted_output,
-        "messages": messages
-    }
+    state["output"] = formatted_output
+    return state

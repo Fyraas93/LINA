@@ -50,8 +50,5 @@ def analyzer_node(state: AgentState) -> AgentState:
     chat_history.append(HumanMessage(content=f"Analyze logs related to: {state['query']}"))
     chat_history.append(AIMessage(content=analysis.output))
     
-    return {
-        **state,
-        "log_analysis": analysis.output,
-        "chat_history": chat_history
-    }
+    state["output"] = analysis.output
+    return state

@@ -68,7 +68,7 @@ if send and query:
             )
             response.raise_for_status()
             data = response.json()
-            answer = data.get("output", {}).get("output", "No output.")
+            answer = data.get("output", {})
     except Exception as e:
         answer = f"❌ Error: {str(e)}"
 

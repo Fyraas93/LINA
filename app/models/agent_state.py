@@ -12,3 +12,4 @@ class AgentState(BaseAgentState):
     server_manager: Optional[Server_manager]
     chat_response: Optional[str]
     chat_history: Optional[List[BaseMessage]]
+    output : Optional[str]

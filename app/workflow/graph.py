@@ -23,7 +23,7 @@ def supervisor_router(state : AgentState):
     print("*"*50)
     return router_mapping.get(state["supervisor"], None)
 
-def create_workflow_graph():
+def create_workflow_graph(memory:InMemorySaver = None):
 
     print("--"*50)
     print("Creating workflow graph...")
@@ -60,7 +60,7 @@ def create_workflow_graph():
     graph.add_edge("server_manager_node", END)
     graph.add_edge("chat_node", END)
 
-    app = graph.compile()
+    app = graph.compile(checkpointer=memory)
     app.get_graph().draw_mermaid_png(output_file_path="graph.png")
 
     return app
