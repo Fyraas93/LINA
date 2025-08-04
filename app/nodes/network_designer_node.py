@@ -1,7 +1,7 @@
 from app.models.agent_state import AgentState
 from app.chains.chains import get_network_designer_chain
 from app.models.models import Network_design
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
 def format_network_design(design: Network_design) -> str:
     return (
@@ -17,8 +17,9 @@ def format_network_design(design: Network_design) -> str:
 def network_designer_node(state: AgentState) -> AgentState:
     """
     Generates a network design based on the user's query.
-    Stores the formatted result and updates memory.
+    Stores the formatted result and updates chat history.
     """
+    chat_history: list[BaseMessage] = state.get("chat_history") or []
 
     # Run the chain to get the raw structured output
     design_result = get_network_designer_chain().invoke({"query": state["query"]})
@@ -29,10 +30,12 @@ def network_designer_node(state: AgentState) -> AgentState:
     # Format for presentation
     formatted_output = format_network_design(design)
 
-    # Update memory (if tracking messages)
-    messages = state.get("messages", [])
-    messages.append(HumanMessage(content=f"Design a network for: {state['query']}"))
-    messages.append(AIMessage(content=formatted_output))
+    # Update chat history
+    chat_history.append(HumanMessage(content=state["query"]))
+    chat_history.append(AIMessage(content=formatted_output))
 
+    # Update state
     state["output"] = formatted_output
+    state["chat_history"] = chat_history
+
     return state

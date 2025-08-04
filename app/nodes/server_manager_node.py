@@ -6,7 +6,7 @@ from rich import print
 from app.models.agent_state import AgentState
 from app.models.models import Server_manager
 from app.chains.chains import get_server_manager_chain
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
 load_dotenv()
 
@@ -17,6 +17,9 @@ def remove_sudo(command: str) -> str:
     return re.sub(r'\bsudo\b', '', command).strip()
 
 def execute_ssh_command(command: str) -> Server_manager:
+    """
+    Executes a shell command via SSH and returns the result in Server_manager schema.
+    """
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -51,35 +54,37 @@ def execute_ssh_command(command: str) -> Server_manager:
 
 def server_manager_node(state: AgentState) -> AgentState:
     """
-    Supervisor node: interprets user query, executes the command as root over SSH,
-    and updates the state and chat history.
+    Interprets the user query using the LLM, executes the command via SSH,
+    and updates the agent state with result and message history.
     """
     user_query = state["query"]
+    chat_history: list[BaseMessage] = state.get("chat_history") or []
 
+    # Step 1: Get command from LLM
     command_output = get_server_manager_chain().invoke({"query": user_query})
     raw_command = command_output.command
-
     cleaned_command = remove_sudo(raw_command)
 
     print("[bold yellow]LLM raw command:[/bold yellow]", raw_command)
     print("[bold green]Cleaned command:[/bold green]", cleaned_command)
 
+    # Step 2: Execute the command
     result = execute_ssh_command(cleaned_command)
 
-    # Step 4: Update chat history
-    chat_history = state.get("chat_history", [])
-    chat_history.append(HumanMessage(content=f"Execute server command: {user_query}"))
-    chat_history.append(
-        AIMessage(content=f"Command: {result.command}\n\nOutput:\n{result.output or 'None'}\n\nError:\n{result.error or 'None'}")
-    )
+    # Step 3: Update chat history
+    chat_history.append(HumanMessage(content=user_query))
+    chat_history.append(AIMessage(content=f"Executing: `{result.command}`\n\n"
+                                          f"**Output:**\n{result.output or 'None'}\n\n"
+                                          f"**Error:**\n{result.error or 'None'}"))
+
+    # Step 4: Update state
     state["chat_history"] = chat_history
 
-    # Step 5: Final output
     if result.success and not result.output:
-        state["output"] = "Command executed successfully."
+        state["output"] = "Command executed successfully"
     elif result.success:
         state["output"] = result.output
     else:
-        state["output"] = f" Error: {result.error}"
+        state["output"] = f"Command failed.\nError: {result.error}"
 
     return state
