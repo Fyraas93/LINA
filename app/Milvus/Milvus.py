@@ -171,7 +171,6 @@ class MilvusStorage:
                 print("No valid embeddings to insert.")
                 return False
 
-            # Ensure all data types are correct for Milvus insertion
             data = [
                 {
                     "embedding": numpy_embeddings[i],
@@ -200,7 +199,7 @@ class MilvusStorage:
             traceback.print_exc()
             return False
 
-    def search_similar_logs(self, query_embedding, top_k=10, only_anomalies=False):
+    def search_similar_logs(self, query_embedding, top_k=20, only_anomalies=False):
         """
         Search for similar logs based on embedding.
         """

@@ -34,4 +34,3 @@ class linaService:
                 "thread_id": "123",
             }
         )
-

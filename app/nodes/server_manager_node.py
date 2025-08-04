@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import paramiko
 import os
+import re
 from rich import print
 from app.models.agent_state import AgentState
 from app.models.models import Server_manager
@@ -9,22 +10,26 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 load_dotenv()
 
+def remove_sudo(command: str) -> str:
+    """
+    Removes 'sudo' keyword to ensure root execution without redundant prefix.
+    """
+    return re.sub(r'\bsudo\b', '', command).strip()
+
 def execute_ssh_command(command: str) -> Server_manager:
-    """
-    Executes a shell command on a remote server via SSH and returns structured output.
-    """
     try:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         ssh.connect(
             hostname=os.getenv("SERVER_HOSTNAME"),
-            username=os.getenv("SERVER_USERNAME"),
+            username=os.getenv("SERVER_USERNAME"),  # should be 'root'
             password=os.getenv("SERVER_PASSWORD"),
             port=int(os.getenv("SERVER_PORT"))
         )
 
         stdin, stdout, stderr = ssh.exec_command(command)
+
         output = stdout.read().decode().strip()
         error = stderr.read().decode().strip()
         ssh.close()
@@ -44,28 +49,37 @@ def execute_ssh_command(command: str) -> Server_manager:
             success=False
         )
 
-
 def server_manager_node(state: AgentState) -> AgentState:
     """
-    Interprets a user request into a server command, executes it over SSH,
-    and returns the result.
+    Supervisor node: interprets user query, executes the command as root over SSH,
+    and updates the state and chat history.
     """
-
     user_query = state["query"]
 
-    # Step 1: Use LLM to convert query to command
     command_output = get_server_manager_chain().invoke({"query": user_query})
-    command = command_output.command
+    raw_command = command_output.command
 
-    print("LLM-generated command:", command)
+    cleaned_command = remove_sudo(raw_command)
 
-    # Step 2: Run command via SSH
-    result = execute_ssh_command(command)
+    print("[bold yellow]LLM raw command:[/bold yellow]", raw_command)
+    print("[bold green]Cleaned command:[/bold green]", cleaned_command)
 
-    # Step 3: Update message history if tracking
+    result = execute_ssh_command(cleaned_command)
+
+    # Step 4: Update chat history
     chat_history = state.get("chat_history", [])
     chat_history.append(HumanMessage(content=f"Execute server command: {user_query}"))
-    chat_history.append(AIMessage(content=f"Command: `{result.command}`\n\nOutput:\n{result.output}\n\nError:\n{result.error or 'None'}"))
+    chat_history.append(
+        AIMessage(content=f"Command: {result.command}\n\nOutput:\n{result.output or 'None'}\n\nError:\n{result.error or 'None'}")
+    )
+    state["chat_history"] = chat_history
 
-    state["output"] = result.output
+    # Step 5: Final output
+    if result.success and not result.output:
+        state["output"] = "Command executed successfully."
+    elif result.success:
+        state["output"] = result.output
+    else:
+        state["output"] = f" Error: {result.error}"
+
     return state
